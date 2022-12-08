@@ -32,6 +32,9 @@
       pkgs = nixpkgs.legacyPackages.${system};
 
       tox-env = pkgs.${python}.withPackages (ps: [ ps.tox ] );
+      tox-derivation = pkgs.writeScript "./bin/tox.sh" ''
+          ${tox-env}/bin/python -m tox "$@"
+          '';
 
       tahoe-env = mach-nix.lib.${system}.mkPython {
         inherit python;
@@ -113,7 +116,8 @@
             dbus.lib
 
             # Put tox into the environment for "easy" testing
-            tox-env
+            (import ./tox.nix { inherit pkgs; })
+            # pkgs.${python}.pkgs.tox
 
             # GridSync also depends on `tahoe` and `magic-folder` CLI tools.
             tahoe-env
