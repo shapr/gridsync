@@ -117,11 +117,19 @@
 
             # Put tox into the environment for "easy" testing
             (import ./tox.nix { inherit pkgs; })
-            # pkgs.${python}.pkgs.tox
 
             # GridSync also depends on `tahoe` and `magic-folder` CLI tools.
-            tahoe-env
-            magic-folder-env
+            (import ./pythonless-wrapper.nix {
+              inherit pkgs;
+              pkg = tahoe-env;
+              scripts = [ "tahoe" ];
+            })
+
+            (import ./pythonless-wrapper.nix {
+              inherit pkgs;
+              pkg = magic-folder-env;
+              scripts = [ "magic-folder" ];
+            })
           ]);
         inherit runScript;
       };
