@@ -167,10 +167,10 @@ pytest-twisted==1.14.0 \
     --hash=sha256:1b63b73182bd1b995f30826a1d870c9ac0d08244ab0c871eb8bd0c8243acfb3d \
     --hash=sha256:209bf5a6452cfbfb61de8f015902c14ec8126400911507074bb2ee4ce8dfe313
     # via -r requirements/test.in
-pytest-xvfb==2.0.0 \
-    --hash=sha256:6d21b46f099c06d6b8b200e73341da3adb73d67e9139c55d617930881779360b \
-    --hash=sha256:c4ba642de05499940db7f65ee111621939be513e3e75c3da9156b7235e2ed8cf
-    # via -r requirements/test.in
+# pytest-xvfb==2.0.0 \
+#     --hash=sha256:6d21b46f099c06d6b8b200e73341da3adb73d67e9139c55d617930881779360b \
+#     --hash=sha256:c4ba642de05499940db7f65ee111621939be513e3e75c3da9156b7235e2ed8cf
+#     # via -r requirements/test.in
 pyvirtualdisplay==3.0 \
     --hash=sha256:09755bc3ceb6eb725fb07eca5425f43f2358d3bf08e00d2a9b792a1aedd16159 \
     --hash=sha256:40d4b8dfe4b8de8552e28eb367647f311f88a130bf837fe910e7f180d5477f0e
