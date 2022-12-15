@@ -115,6 +115,10 @@
             xorg.xcbutilrenderutil
             dbus.lib
 
+            # Provide some Pythons for tox to use.
+            python39
+            python310
+
             # Put tox into the environment for "easy" testing
             (import ./tox.nix { inherit pkgs; })
 
