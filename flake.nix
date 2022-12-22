@@ -31,6 +31,33 @@
 
       pkgs = nixpkgs.legacyPackages.${system};
 
+      gridsync-env =
+            # we need a Python to run gridsync, so it needs those dependencies
+            # we find those by reading its packaging source code
+            (pkgs.python39.withPackages (ps: with ps; [
+              # tahoe-capabilities
+              atomicwrites
+              attrs
+              autobahn
+              certifi
+              distro
+              filelock
+              humanize
+              hyperlink
+              magic-wormhole
+              psutil
+              pynacl
+              pyqt5
+              pyyaml
+              qtpy
+              treq
+              twisted
+              txdbus
+              txtorcon
+              watchdog
+              zxcvbn
+            ]));
+
       tox-env = pkgs.${python}.withPackages (ps: [ ps.tox ] );
       tox-derivation = pkgs.writeScript "./bin/tox.sh" ''
           ${tox-env}/bin/python -m tox "$@"
@@ -116,8 +143,8 @@
             dbus.lib
 
             # Provide some Pythons for tox to use.
-            python39
-            python310
+            # python39
+            # python310
 
             # Put tox into the environment for "easy" testing
             (import ./tox.nix { inherit pkgs; })
