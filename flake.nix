@@ -122,6 +122,12 @@
             # Put tox into the environment for "easy" testing
             (import ./tox.nix { inherit pkgs; })
 
+            (import ./pythonless-wrapper.nix {
+              inherit pkgs;
+              pkg = (pkgs.python3.withPackages (ps: [ ps.mypy ]));
+              scripts = [ "mypy" ];
+            })
+
             # GridSync also depends on `tahoe` and `magic-folder` CLI tools.
             (import ./pythonless-wrapper.nix {
               inherit pkgs;
