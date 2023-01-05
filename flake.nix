@@ -31,45 +31,43 @@
 
       pkgs = nixpkgs.legacyPackages.${system};
 
-      pyqtchart =
-        let py = pkgs."${python}Packages";
-        in
-          with pkgs.libsForQt5;
-          py.callPackage ./pyqtchart.nix {
-            pyqtchart-qt = py.callPackage ./pyqtchart-qt.nix { inherit (qt5) full; };
-            inherit qmake;
-            inherit (qt5) qtbase;
-            inherit qtcharts;
-          };
+      pyqtchart = { callPackage, libsForQt5 }:
+        with libsForQt5;
+        callPackage ./pyqtchart.nix {
+          pyqtchart-qt = callPackage ./pyqtchart-qt.nix { inherit (qt5) full; };
+          inherit qmake;
+          inherit (qt5) qtbase;
+          inherit qtcharts;
+        };
 
       gridsync-env =
-            # we need a Python to run gridsync, so it needs those dependencies
-            # we find those by reading its packaging source code
-            (pkgs.python39.withPackages (ps: with ps; [
-              # tahoe-capabilities
-              atomicwrites
-              attrs
-              autobahn
-              certifi
-              distro
-              filelock
-              humanize
-              hyperlink
-              magic-wormhole
-              psutil
-              pynacl
-              pyqtchart
-              pyqt5
-              pyyaml
-              qtpy
-              treq
-              twisted
-              txdbus
-              txtorcon
-              watchdog
-              zxcvbn
-              (callPackage tahoe-capabilities {} ) # callPackage is just MAGIC!
-            ]));
+        # we need a Python to run gridsync, so it needs those dependencies
+        # we find those by reading its packaging source code
+        (pkgs.${python}.withPackages (ps: with ps; [
+          # tahoe-capabilities
+          atomicwrites
+          attrs
+          autobahn
+          certifi
+          distro
+          filelock
+          humanize
+          hyperlink
+          magic-wormhole
+          psutil
+          pynacl
+          (callPackage pyqtchart {})
+          pyqt5
+          pyyaml
+          qtpy
+          treq
+          twisted
+          txdbus
+          txtorcon
+          watchdog
+          zxcvbn
+          (callPackage tahoe-capabilities {}) # callPackage is just MAGIC!
+        ]));
 
       tox-env = pkgs.${python}.withPackages (ps: [ ps.tox ] );
       tox-derivation = pkgs.writeScript "./bin/tox.sh" ''
