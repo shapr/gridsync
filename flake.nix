@@ -31,6 +31,17 @@
 
       pkgs = nixpkgs.legacyPackages.${system};
 
+      pyqtchart =
+        let py = pkgs."${python}Packages";
+        in
+          with pkgs.libsForQt5;
+          py.callPackage ./pyqtchart.nix {
+            pyqtchart-qt = py.callPackage ./pyqtchart-qt.nix { inherit (qt5) full; };
+            inherit qmake;
+            inherit (qt5) qtbase;
+            inherit qtcharts;
+          };
+
       gridsync-env =
             # we need a Python to run gridsync, so it needs those dependencies
             # we find those by reading its packaging source code
@@ -47,6 +58,7 @@
               magic-wormhole
               psutil
               pynacl
+              pyqtchart
               pyqt5
               pyyaml
               qtpy
@@ -56,6 +68,7 @@
               txtorcon
               watchdog
               zxcvbn
+              (callPackage tahoe-capabilities {} ) # callPackage is just MAGIC!
             ]));
 
       tox-env = pkgs.${python}.withPackages (ps: [ ps.tox ] );
@@ -70,6 +83,27 @@
         # get close, though.
         requirements = builtins.readFile ./requirements/tahoe-lafs.in;
       };
+
+      tahoe-capabilities = { lib, buildPythonPackage, fetchPypi, attrs }:
+        buildPythonPackage rec {
+          pname = "tahoe-capabilities";
+          version = "2023.1.5";
+          buildInputs = [ attrs ];
+
+          src = fetchPypi {
+            inherit pname version;
+            sha256 = "sha256-PdHCrznvsiOmdySrJOXB9GcDXfxqJPOUG0rL/8S/3D8=";
+          };
+
+          doCheck = false;
+
+          meta = with lib; {
+            homepage = "https://github.com/tahoe-lafs/tahoe-capabilities";
+            description = "Simple, re-usable types for interacting with Tahoe-LAFS capabilities";
+            license = licenses.gpl2;
+            maintainers = with maintainers; [ exarkun ];
+          };
+        };
 
       magic-folder-env = mach-nix.lib.${system}.mkPython {
         inherit python;
@@ -125,26 +159,26 @@
           [
             # GridSync depends on PyQt5.  The PyQt5 wheel bundles Qt5 itself
             # but not the dependencies of those libraries.  Supply them.
-            libstdcxx5
-            zlib
-            glib
-            libGL
+            dbus.lib
             fontconfig
             freetype
+            glib
+            libGL
+            libstdcxx5
             libxkbcommon
-            xorg.libxcb
-            xorg.libXext
+            qt5.full
             xorg.libX11
+            xorg.libXext
+            xorg.libxcb
             xorg.xcbutil
-            xorg.xcbutilwm
             xorg.xcbutilimage
             xorg.xcbutilkeysyms
             xorg.xcbutilrenderutil
-            dbus.lib
+            xorg.xcbutilwm
+            zlib
 
-            # Provide some Pythons for tox to use.
-            # python39
-            # python310
+            # after this point, manually add lots of necessary things
+            gridsync-env
 
             # Put tox into the environment for "easy" testing
             (import ./tox.nix { inherit pkgs; })
@@ -188,6 +222,18 @@
           # Arguments from the command line will be passed along.
           # pkgs/build-support/build-fhs-userenv/default.nix for gory details.
           program = "${makeDevShell xvfb-tox}/bin/dev-env";
+        };
+      apps.gridsync =
+        let
+          gridsync = pkgs.writeScript "gridsync" ''
+          python -m gridsync.cli "$@"
+          '';
+        in {
+          type = "app";
+          # Run the env-entering script from the FHS user environment.
+          # Arguments from the command line will be passed along.
+          # pkgs/build-support/build-fhs-userenv/default.nix for gory details.
+          program = "${makeDevShell gridsync}/bin/dev-env"; # where do we get dev-env? nobody knows
         };
     });
 }
