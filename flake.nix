@@ -43,7 +43,6 @@
           # we find those by reading its packaging source code
           (pkgs.${python}.withPackages (ps:
             with ps; [
-              # tahoe-capabilities
               atomicwrites
               attrs
               autobahn
