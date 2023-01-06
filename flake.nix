@@ -219,9 +219,7 @@
           # Run the env-entering script from the FHS user environment.
           # Arguments from the command line will be passed along.
           # pkgs/build-support/build-fhs-userenv/default.nix for gory details.
-          program = "${
-              makeDevShell gridsync
-            }/bin/dev-env";
+          program = "${makeDevShell gridsync}/bin/dev-env";
         };
       });
 }
