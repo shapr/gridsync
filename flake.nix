@@ -202,6 +202,9 @@
           # Run the env-entering script from the FHS user environment.
           # Arguments from the command line will be passed along.
           # pkgs/build-support/build-fhs-userenv/default.nix for gory details.
+          #
+          # `dev-env` is the name we assigned in the buildFHSUserEnv call
+          # above.
           program = "${makeDevShell xvfb-tox}/bin/dev-env";
         };
         apps.gridsync = let
@@ -215,7 +218,7 @@
           # pkgs/build-support/build-fhs-userenv/default.nix for gory details.
           program = "${
               makeDevShell gridsync
-            }/bin/dev-env"; # where do we get dev-env? nobody knows
+            }/bin/dev-env";
         };
       });
 }
