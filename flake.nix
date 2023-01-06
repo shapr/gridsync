@@ -155,25 +155,9 @@
             # target architecture).
             targetPkgs = pkgs:
               (with pkgs; [
-                # GridSync depends on PyQt5.  The PyQt5 wheel bundles Qt5 itself
-                # but not the dependencies of those libraries.  Supply them.
-                dbus.lib
-                fontconfig
-                freetype
-                glib
-                libGL
-                libstdcxx5
-                libxkbcommon
+                # GridSync depends on PyQt5.  The PyQt5 Nix packages don't
+                # pull in Qt5 itself for some reason, so add it.
                 qt5.full
-                xorg.libX11
-                xorg.libXext
-                xorg.libxcb
-                xorg.xcbutil
-                xorg.xcbutilimage
-                xorg.xcbutilkeysyms
-                xorg.xcbutilrenderutil
-                xorg.xcbutilwm
-                zlib
 
                 # after this point, manually add lots of necessary things
                 gridsync-env
