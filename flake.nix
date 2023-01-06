@@ -154,34 +154,38 @@
             # target architecture).
             targetPkgs = pkgs:
               (with pkgs; [
-                # GridSync depends on PyQt5.  The PyQt5 Nix packages don't
+                # Gridsync depends on PyQt5.  The PyQt5 Nix packages don't
                 # pull in Qt5 itself for some reason, so add it.
                 qt5.full
 
-                # after this point, manually add lots of necessary things
+                # Add a Python environment with all of Gridsync's Python
+                # dependencies.
                 gridsync-env
 
-                # Put tox into the environment for "easy" testing
-                (import ./tox.nix { inherit pkgs; })
+                # Gridsync also depends on `tahoe` and `magic-folder` CLI
+                # tools.  We put them in the environment so they're available
+                # via the CLI but they don't get involved with Gridsync's
+                # Python environment (ie, they're not importable).  We also
+                # separate them from each other.
+                (import ./pythonless-wrapper.nix {
+                  inherit pkgs;
+                  pkg = tahoe-env;
+                  scripts = [ "tahoe" ];
+                })
+                (import ./pythonless-wrapper.nix {
+                  inherit pkgs;
+                  pkg = magic-folder-env;
+                  scripts = [ "magic-folder" ];
+                })
 
+                # Put tox and mypy into the environment for "easy" testing
+                (import ./tox.nix { inherit pkgs; })
                 (import ./pythonless-wrapper.nix {
                   inherit pkgs;
                   pkg = (pkgs.python3.withPackages (ps: [ ps.mypy ]));
                   scripts = [ "mypy" ];
                 })
 
-                # GridSync also depends on `tahoe` and `magic-folder` CLI tools.
-                (import ./pythonless-wrapper.nix {
-                  inherit pkgs;
-                  pkg = tahoe-env;
-                  scripts = [ "tahoe" ];
-                })
-
-                (import ./pythonless-wrapper.nix {
-                  inherit pkgs;
-                  pkg = magic-folder-env;
-                  scripts = [ "magic-folder" ];
-                })
               ]);
             inherit runScript;
           };
