@@ -111,15 +111,15 @@
         # Build an FHS user environment that contains Qt native library
         # dependencies and some Python tools.  This is suitable for running tox
         # in.  `runScript` is the command to run in the FHS env's chroot.
-        makeDevShell = runScript:
-          pkgs.buildFHSUserEnv {
+        devShell =
+          pkgs.mkShell {
             name = "dev-env";
-            profile = (
+            shellHook = (
               # Usually bytecode is just a nuisance - getting stale, taking more
               # time to read/write than it saves, or creating extra noise in the
               # checkout with generated files.
               ''
-                export PYTHONDONTWRITEBYTECODE=1
+              export PYTHONDONTWRITEBYTECODE=1
               ''
 
               # If there are any Qt plugins installed on the host system then we
@@ -132,7 +132,7 @@
               # libraries aren't discovered.
               + ''
                 unset QT_PLUGIN_PATH
-              ''
+                ''
 
               # tox has its own ideas about what the default Python should be,
               # without regard to what version of Python is actually available on
@@ -140,7 +140,7 @@
               # up.
               + ''
                 export TOX_BASEPYTHON=${pythonVersion}
-              ''
+                ''
 
               # Sometimes the information Qt dumps when this variable is set is
               # useful for debugging Qt-related problems (especially problems
@@ -148,52 +148,41 @@
               # not on by default.
               + ''
                 # export QT_DEBUG_PLUGINS=1
-              '');
+                '');
 
             # Install some libraries in the environment (only versions for the
             # target architecture).
-            targetPkgs = pkgs:
-              (with pkgs; [
-                # Gridsync depends on PyQt5.  The PyQt5 Nix packages don't
-                # pull in Qt5 itself for some reason, so add it.
-                qt5.full
+            packages = with pkgs; [
+              # Gridsync depends on PyQt5.  The PyQt5 Nix packages don't
+              # pull in Qt5 itself for some reason, so add it.
+              qt5.full
 
-                # Add a Python environment with all of Gridsync's Python
-                # dependencies.
-                gridsync-env
+              # Add a Python environment with all of Gridsync's Python
+              # dependencies.
+              gridsync-env
 
-                # Gridsync also depends on `tahoe` and `magic-folder` CLI
-                # tools.  We put them in the environment so they're available
-                # via the CLI but they don't get involved with Gridsync's
-                # Python environment (ie, they're not importable).  We also
-                # separate them from each other.
-                (import ./pythonless-wrapper.nix {
-                  inherit pkgs;
-                  pkg = tahoe-env;
-                  scripts = [ "tahoe" ];
-                })
-                (import ./pythonless-wrapper.nix {
-                  inherit pkgs;
-                  pkg = magic-folder-env;
-                  scripts = [ "magic-folder" ];
-                })
-
-                # Put tox and mypy into the environment for "easy" testing
-                (import ./tox.nix { inherit pkgs; })
-                (import ./pythonless-wrapper.nix {
-                  inherit pkgs;
-                  pkg = (pkgs.python3.withPackages (ps: [ ps.mypy ]));
-                  scripts = [ "mypy" ];
-                })
-
-              ]);
-            inherit runScript;
+              # Gridsync also depends on `tahoe` and `magic-folder` CLI tools.
+              # We put them in the environment so they're available via the
+              # CLI but they don't get involved with Gridsync's Python
+              # environment (ie, they're not importable).  We also separate
+              # them from each other.
+              (import ./pythonless-wrapper.nix {
+                inherit pkgs;
+                pkg = tahoe-env;
+                scripts = [ "tahoe" ];
+              })
+              (import ./pythonless-wrapper.nix {
+                inherit pkgs;
+                pkg = magic-folder-env;
+                scripts = [ "magic-folder" ];
+              })
+            ];
           };
 
       in {
         devShells = {
           # The default is to run an interactive shell.
-          default = (makeDevShell "bash").env;
+          default = devShell;
         };
 
         apps.tox = let
@@ -208,7 +197,7 @@
           #
           # `dev-env` is the name we assigned in the buildFHSUserEnv call
           # above.
-          program = "${makeDevShell xvfb-tox}/bin/dev-env";
+          # program = "${makeDevShell xvfb-tox}/bin/dev-env";
         };
         apps.gridsync = let
           gridsync = pkgs.writeScript "gridsync" ''
@@ -219,7 +208,7 @@
           # Run the env-entering script from the FHS user environment.
           # Arguments from the command line will be passed along.
           # pkgs/build-support/build-fhs-userenv/default.nix for gory details.
-          program = "${makeDevShell gridsync}/bin/dev-env";
+          # program = "${makeDevShell gridsync}/bin/dev-env";
         };
       });
 }
