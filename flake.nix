@@ -149,35 +149,35 @@
               + ''
                 # export QT_DEBUG_PLUGINS=1
                 '');
-
-            # Install some libraries in the environment (only versions for the
-            # target architecture).
-            packages = with pkgs; [
-              # Gridsync depends on PyQt5.  The PyQt5 Nix packages don't
-              # pull in Qt5 itself for some reason, so add it.
-              qt5.full
-
-              # Add a Python environment with all of Gridsync's Python
-              # dependencies.
-              gridsync-env
-
-              # Gridsync also depends on `tahoe` and `magic-folder` CLI tools.
-              # We put them in the environment so they're available via the
-              # CLI but they don't get involved with Gridsync's Python
-              # environment (ie, they're not importable).  We also separate
-              # them from each other.
-              (import ./pythonless-wrapper.nix {
-                inherit pkgs;
-                pkg = tahoe-env;
-                scripts = [ "tahoe" ];
-              })
-              (import ./pythonless-wrapper.nix {
-                inherit pkgs;
-                pkg = magic-folder-env;
-                scripts = [ "magic-folder" ];
-              })
-            ];
           };
+
+        # Install some libraries in the environment (only versions for the
+        # target architecture).
+        packages = with pkgs; [
+          # Gridsync depends on PyQt5.  The PyQt5 Nix packages don't
+          # pull in Qt5 itself for some reason, so add it.
+          qt5.full
+
+          # Add a Python environment with all of Gridsync's Python
+          # dependencies.
+          gridsync-env
+
+          # Gridsync also depends on `tahoe` and `magic-folder` CLI tools.
+          # We put them in the environment so they're available via the
+          # CLI but they don't get involved with Gridsync's Python
+          # environment (ie, they're not importable).  We also separate
+          # them from each other.
+          (import ./pythonless-wrapper.nix {
+            inherit pkgs;
+            pkg = tahoe-env;
+            scripts = [ "tahoe" ];
+          })
+          (import ./pythonless-wrapper.nix {
+            inherit pkgs;
+            pkg = magic-folder-env;
+            scripts = [ "magic-folder" ];
+          })
+        ];
 
       in {
         devShells = {
@@ -200,15 +200,23 @@
           # program = "${makeDevShell xvfb-tox}/bin/dev-env";
         };
         apps.gridsync = let
-          gridsync = pkgs.writeScript "gridsync" ''
+          gridsync-script = pkgs.writeScript "gridsync" ''
             python -m gridsync.cli "$@"
           '';
+          other = pkgs.stdenv.mkDerivation {
+            name = "gridsync";
+            buildInputs = packages ;
+            buildPhase = "#plzno"; # empty string doesn't prevent buildPhase from running make for you, must have content of some sort
+            installPhase = "#nothiseither";
+            src = ./.;
+          };
         in {
           type = "app";
           # Run the env-entering script from the FHS user environment.
           # Arguments from the command line will be passed along.
           # pkgs/build-support/build-fhs-userenv/default.nix for gory details.
-          # program = "${makeDevShell gridsync}/bin/dev-env";
+          # program = "${devShell}/bin/python"; # when you interpret a derivation as a string, the value of the string is value of the output path
+          program = "${other}/bin/python -m gridsync.cli";
         };
       });
 }
