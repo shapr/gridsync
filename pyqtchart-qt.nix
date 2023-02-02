@@ -10,6 +10,8 @@
 , stdenv
 }:
 
+# SME : This may not be necessary, according to its entry on PyPi it's a QT subset install
+
 buildPythonPackage rec {
   pname = "PyQtChart_Qt";
   version = "5.15.2";

@@ -38,36 +38,37 @@
             inherit qtcharts;
           };
 
-        gridsync = pkgs.${python}.pkgs.callPackage ./gridsync-pkg.nix { };
+        # we need a Python to run gridsync, so it needs those dependencies
+        # we find those by reading its packaging source code
+        gridsync-packages = ps: with ps;
+          [ atomicwrites
+            attrs
+            autobahn
+            certifi
+            distro
+            filelock
+            humanize
+            hyperlink
+            magic-wormhole
+            psutil
+            pynacl
+            (callPackage pyqtchart { })
+            pyqt5
+            pyyaml
+            qtpy
+            treq
+            twisted
+            txdbus
+            txtorcon
+            watchdog
+            zxcvbn
+            (callPackage tahoe-capabilities { }) # callPackage is just MAGIC!
+          ];
 
-        gridsync-env =
-          # we need a Python to run gridsync, so it needs those dependencies
-          # we find those by reading its packaging source code
-          (pkgs.${python}.withPackages (ps:
-            with ps; [
-              atomicwrites
-              attrs
-              autobahn
-              certifi
-              distro
-              filelock
-              humanize
-              hyperlink
-              magic-wormhole
-              psutil
-              pynacl
-              (callPackage pyqtchart { })
-              pyqt5
-              pyyaml
-              qtpy
-              treq
-              twisted
-              txdbus
-              txtorcon
-              watchdog
-              zxcvbn
-              (callPackage tahoe-capabilities { }) # callPackage is just MAGIC!
-            ]));
+        # :: Derivation
+        gridsync-env = pkgs.${python}.withPackages gridsync-packages;
+
+        gridsync = pkgs.${python}.pkgs.callPackage ./gridsync-pkg.nix { inherit gridsync-packages; };
 
         tox-env = pkgs.${python}.withPackages (ps: [ ps.tox ]);
         tox-derivation = pkgs.writeScript "./bin/tox.sh" ''

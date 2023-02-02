@@ -1,8 +1,11 @@
 # copied from https://github.com/prehonor/nixos/blob/master/nixpkgs-overlays/pkgs/development/python-modules/
 # credit to prehonor
 
-{ lib
+{ gridsync-packages
+, lib
 , buildPythonPackage
+, python
+, wrapQtAppsHook
 }:
 
 
@@ -11,6 +14,8 @@ buildPythonPackage rec {
   version = "0.6.1";
   src = ./.;
   format = "setuptools";
+  buildInputs = [wrapQtAppsHook ];
+  propagatedBuildInputs = gridsync-packages python.pkgs;
 
   # Checked using pythonImportsCheck
   doCheck = false;
