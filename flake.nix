@@ -200,9 +200,6 @@
           # program = "${makeDevShell xvfb-tox}/bin/dev-env";
         };
         apps.gridsync = let
-          gridsync-script = pkgs.writeScript "gridsync" ''
-            python -m gridsync.cli "$@"
-          '';
           other = pkgs.stdenv.mkDerivation {
             name = "gridsync";
             buildInputs = packages ;
@@ -210,13 +207,21 @@
             installPhase = "#nothiseither";
             src = ./.;
           };
+          gridsync = pkgs.writeShellApplication {
+            name = "gridsync";
+            runtimeInputs = packages; # // morethings
+            text = ''
+            python -m gridsync.cli "$@"
+            '';
+          };
         in {
           type = "app";
           # Run the env-entering script from the FHS user environment.
           # Arguments from the command line will be passed along.
           # pkgs/build-support/build-fhs-userenv/default.nix for gory details.
           # program = "${devShell}/bin/python"; # when you interpret a derivation as a string, the value of the string is value of the output path
-          program = "${other}/bin/python -m gridsync.cli";
+          # program = "${other}/bin/python -m gridsync.cli";
+          program = "${gridsync}/bin/gridsync";
         };
       });
 }
