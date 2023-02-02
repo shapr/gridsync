@@ -38,6 +38,8 @@
             inherit qtcharts;
           };
 
+        gridsync = pkgs.${python}.pkgs.callPackage ./gridsync-pkg.nix { };
+
         gridsync-env =
           # we need a Python to run gridsync, so it needs those dependencies
           # we find those by reading its packaging source code
@@ -207,7 +209,7 @@
             installPhase = "#nothiseither";
             src = ./.;
           };
-          gridsync = pkgs.writeShellApplication {
+          gridsync-dev = pkgs.writeShellApplication {
             name = "gridsync";
             runtimeInputs = packages; # // morethings
             text = ''
